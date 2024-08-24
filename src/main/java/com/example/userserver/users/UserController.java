@@ -1,5 +1,7 @@
 package com.example.userserver.users;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -8,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     public UserController(UserService userService) {
         this.userService = userService;
@@ -24,8 +27,8 @@ public class UserController {
         if (user == null) {
             return ResponseEntity.notFound().build();
         }
-
-        return ResponseEntity.ok(user);
+        logger.error("Error on get user");
+        return ResponseEntity.notFound().build();
     }
 
     @GetMapping("/name/{name}")
