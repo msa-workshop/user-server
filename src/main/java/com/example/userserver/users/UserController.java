@@ -27,8 +27,8 @@ public class UserController {
         if (user == null) {
             return ResponseEntity.notFound().build();
         }
-        logger.error("Error on get user");
-        return ResponseEntity.notFound().build();
+
+        return ResponseEntity.ok(user);
     }
 
     @GetMapping("/name/{name}")
