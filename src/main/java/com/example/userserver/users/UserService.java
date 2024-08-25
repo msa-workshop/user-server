@@ -11,6 +11,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.web.client.RestClient;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 
 @Service
 public class UserService {
@@ -48,6 +49,10 @@ public class UserService {
         }
 
         return new UserInfo(user);
+    }
+
+    public List<UserInfo> getAllUser() {
+        return userRepository.findAll().stream().map(UserInfo::new).toList();
     }
 
     public UserInfo getUserByName(String name) {
