@@ -43,6 +43,7 @@ public class UserService {
 
     public UserInfo getUser(int userId) {
         User user = userRepository.findById(userId).orElse(null);
+        logger.info("Get user info {}", userId);
 
         if (user == null) {
             return null;
