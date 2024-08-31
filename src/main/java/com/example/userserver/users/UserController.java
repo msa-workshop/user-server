@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClient;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -53,5 +55,10 @@ public class UserController {
     public boolean deleteUser(@PathVariable("id") int id) {
 
         return userService.deleteUser(id);
+    }
+
+    @GetMapping
+    public List<UserInfo> getAllUserId() {
+        return userService.getAllUser();
     }
 }

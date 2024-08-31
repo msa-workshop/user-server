@@ -11,15 +11,13 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.web.client.RestClient;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 
 @Service
 public class UserService {
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final UserRepository userRepository;
-    @Value("${sns.post-server}")
-    private String postServerUrl;
-    private final RestClient restClient = RestClient.create();
     private final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     public UserService(UserRepository userRepository) {
@@ -86,45 +84,13 @@ public class UserService {
 
     @Transactional
     public boolean deleteUser(int id) {
-        Boolean deactivated = false;
-        try {
-            deactivated = restClient.delete()
-                    .uri(postServerUrl + "/api/posts/deactivate/" + id)
-                    .retrieve()
-                    .onStatus(HttpStatusCode::isError, (request, response) -> {
-                        throw new RuntimeException("invalid server response " + response.getStatusText());
-                    })
-                    .body(Boolean.class);
+        userRepository.deleteById(id);
 
-            if (deactivated) {
-                userRepository.deleteById(id);
-                Thread.sleep(5000);
-                throw new RuntimeException("Fake Exception to force rollback");
-            } else {
-                return false;
-            }
-        } catch(Exception e) {
-            try {
-                Boolean reactivated = restClient.put()
-                        .uri(postServerUrl + "/api/posts/activate/" + id)
-                        .retrieve()
-                        .onStatus(HttpStatusCode::isError, (request, response) -> {
-                            throw new RuntimeException("Failed to reactivate posts: " + response.getStatusText());
-                        })
-                        .body(Boolean.class);
+        return true;
+    }
 
-                if (!reactivated) {
-                    // Log the failure to reactivate posts
-                    logger.error("Failed to reactivate posts for user " + id + " after deletion failure");
-                }
-            } catch (Exception reactivateException) {
-                logger.error("Failed to reactivate posts for user " + id + " after deletion failure");
-            }
-
-            return false;
-        }
-
-//        return true;
+    public List<UserInfo> getAllUser() {
+        return userRepository.findAll().stream().map(UserInfo::new).toList();
     }
 
 }
