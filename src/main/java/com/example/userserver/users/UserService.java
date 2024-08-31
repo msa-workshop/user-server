@@ -19,9 +19,11 @@ public class UserService {
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final UserRepository userRepository;
     private final Logger logger = LoggerFactory.getLogger(UserService.class);
+    private final PostService postService;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PostService postService) {
         this.userRepository = userRepository;
+        this.postService = postService;
     }
 
     @Transactional
@@ -84,7 +86,25 @@ public class UserService {
 
     @Transactional
     public boolean deleteUser(int id) {
-        userRepository.deleteById(id);
+        try {
+
+            boolean deactivated = postService.deactivate(String.valueOf(id));
+            if (deactivated) {
+                userRepository.deleteById(id);
+                Thread.sleep(10000);
+                throw new RuntimeException("Fake Exception to force rollback");
+            }
+        } catch (Exception e) {
+            try {
+                boolean reactivated = postService.activate(String.valueOf(id));
+                if (!reactivated) {
+                    logger.error("Failed to reactivate posts for user " + id + " after deletion failure");
+                }
+            } catch (Exception reactivateException) {
+                logger.error("Failed to reactivate posts for user " + id + " after deletion failure");
+            }
+            return false;
+        }
 
         return true;
     }
